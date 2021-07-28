@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "ofs3.h"
 
 int main()
 {
@@ -41,6 +42,9 @@ int main()
         fread(buffer, sizeof(buffer),1,pReadFileOSF3);
 
         printf("%s", buffer);
+
+
+        OFS3 OFS3File;
 
         if ((pWriteFileOSF3 = fopen("/home/pmbonneau/Documents/OSF3 Samples/test.bin","wb")) == NULL)
         {

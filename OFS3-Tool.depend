@@ -1,0 +1,5 @@
+# depslib dependency file v1.0
+1627362035 source:/home/pmbonneau/Documents/OSF3-Tool/main.c
+	<stdio.h>
+	<stdlib.h>
+
