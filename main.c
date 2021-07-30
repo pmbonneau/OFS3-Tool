@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "ofs3.h"
 
 int main()
@@ -31,22 +32,57 @@ int main()
         FILE *pReadFileOSF3;
         FILE *pWriteFileOSF3;
 
-        if ((pReadFileOSF3 = fopen("/home/pmbonneau/Documents/OSF3 Samples/sample.ofs3","rb")) == NULL)
+        if ((pReadFileOSF3 = fopen("/home/pmbonneau/Documents/OFS3 Samples/char.ofs3","rb")) == NULL)
         {
             printf("error!\n");
             exit(1);
         }
 
-        unsigned char buffer[16];
+        OFS3 ContainerOFS3;
 
-        fread(buffer, sizeof(buffer),1,pReadFileOSF3);
+        unsigned char buffer[4];
 
-        printf("%s", buffer);
+        for (int i = 0; i <=16; i = i + 4)
+        {
+            //fseek(pReadFileOSF3, i, SEEK_CUR);
+            fread(buffer, sizeof(buffer),1,pReadFileOSF3);
+
+            if (i == 0)
+            {
+                memcpy(ContainerOFS3.FileSignature, buffer, sizeof(buffer));
+            }
+
+            if (i == 4)
+            {
+                memcpy(ContainerOFS3.HeaderSize, buffer, sizeof(buffer));
+            }
+
+            if (i == 8)
+            {
+                memcpy(ContainerOFS3.Unknown1, buffer, sizeof(buffer));
+            }
+
+            if (i == 12)
+            {
+                memcpy(ContainerOFS3.FileNamesTableStart, buffer, sizeof(buffer));
+            }
+
+            if (i == 16)
+            {
+                memcpy(ContainerOFS3.FileCount, buffer, sizeof(buffer));
+            }
+
+            for (int j = 0; j < sizeof(buffer); j++)
+            {
+                printf("%02x\n", buffer[j]);
+            }
+        }
 
 
-        OFS3 OFS3File;
 
-        if ((pWriteFileOSF3 = fopen("/home/pmbonneau/Documents/OSF3 Samples/test.bin","wb")) == NULL)
+
+
+        if ((pWriteFileOSF3 = fopen("/home/pmbonneau/Documents/OFS3 Samples/test.bin","wb")) == NULL)
         {
             printf("error!\n");
             exit(1);
