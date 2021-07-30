@@ -64,7 +64,7 @@ int main()
 
             if (i == 12)
             {
-                memcpy(ContainerOFS3.FileNamesTableStart, buffer, sizeof(buffer));
+                memcpy(ContainerOFS3.FileSize, buffer, sizeof(buffer));
             }
 
             if (i == 16)
@@ -78,6 +78,23 @@ int main()
             }
         }
 
+
+        // Extraction algorithm thinkering
+        // Example of OFS3 header
+        // [4F 46 53 33] [10 00 00 00] [00 00 40 00] [F0 9B 7E 00]
+        // [04 00 00 00] [30 00 00 00] [C0 9A 7E 00] [F0 9A 7E 00]
+        // [1C 00 00 00] [30 9B 7E 00] [28 00 00 00] [70 9B 7E 00]
+        // [80 00 00 00] [00 00 00 00] [00 00 00 00] [00 00 00 00]
+
+        // 1 - We read the first 20 bytes to get the container info. Already done above
+        // Signature, header size, unknown1, filesize and filecount
+
+        // 2 - We declare the stuff we need for files info like this
+        DataFile FileArray[4]; // Replace 4 with FileCount, one file is one DataFile object.
+        // We will have to build a loop that will gather the required file info.
+
+        memcpy(FileArray[1].FileStart, buffer, sizeof(buffer));
+        memcpy(FileArray[1].FileSize, buffer, sizeof(buffer));
 
 
 
