@@ -26,7 +26,6 @@ typedef struct DataFile
     // FileSize is the start of nametable (name of the first file as well)
     char FileSize[4]; // [C0 9A 7E 00], no +0x10, be sure to count from the proper file start.
 
-
     // Probably not working
     // Can be null if the file has no filename (such as another OFS3 container for example).
     char NameTableEnd[4]; // [F0 9A 7E 00], End of nametable, +0x10. Probably not true, needs to be confirmed

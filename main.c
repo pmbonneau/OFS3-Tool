@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ofs3.h"
+#include "utilities.h"
 
 int main()
 {
@@ -50,6 +51,7 @@ int main()
             if (i == 0)
             {
                 memcpy(ContainerOFS3.FileSignature, buffer, sizeof(buffer));
+                //sscanf(buffer, "%x", &testint);
             }
 
             if (i == 4)
@@ -70,6 +72,8 @@ int main()
             if (i == 16)
             {
                 memcpy(ContainerOFS3.FileCount, buffer, sizeof(buffer));
+                //testint = CharHexArrayToHexInt(buffer);
+                //testint2 = HexIntToDecInt(testint);
             }
 
             for (int j = 0; j < sizeof(buffer); j++)
@@ -90,14 +94,22 @@ int main()
         // Signature, header size, unknown1, filesize and filecount
 
         // 2 - We declare the stuff we need for files info like this
-        DataFile FileArray[4]; // Replace 4 with FileCount, one file is one DataFile object.
+        int FileCountHex = CharHexArrayToHexInt(ContainerOFS3.FileCount);
+        int FileCountDec = HexIntToDecInt(FileCountHex);
+        DataFile FileArray[FileCountDec]; // Replace 4 with FileCount, one file is one DataFile object.
         // We will have to build a loop that will gather the required file info.
 
-        memcpy(FileArray[1].FileStart, buffer, sizeof(buffer));
-        memcpy(FileArray[1].FileSize, buffer, sizeof(buffer));
+        // At this point, pReadFileOFS3 should be at offset 0x14
+        for (int FileIndex = 0; FileIndex < FileCountDec; FileIndex++)
+        {
+            // Get the file postion (file start)
+            fread(buffer, sizeof(buffer),1,pReadFileOSF3);
+            memcpy(FileArray[FileIndex].FileStart, buffer, sizeof(buffer));
 
-
-
+            // Get the file size
+            fread(buffer, sizeof(buffer),1,pReadFileOSF3);
+            memcpy(FileArray[FileIndex].FileSize, buffer, sizeof(buffer));
+        }
 
         if ((pWriteFileOSF3 = fopen("/home/pmbonneau/Documents/OFS3 Samples/test.bin","wb")) == NULL)
         {
@@ -105,7 +117,26 @@ int main()
             exit(1);
         }
 
-        fwrite(buffer, sizeof(buffer),1,pWriteFileOSF3);
+        for (int FileIndex = 0; FileIndex < 1; FileIndex++)
+        {
+            int FileSize = CharHexArrayToHexInt(FileArray[FileIndex].FileSize);
+            int FileStart = CharHexArrayToHexInt(FileArray[FileIndex].FileStart) + 0x10;
+
+           // int FileSize = HexIntToDecInt(FileSizeHex);
+            //int FileStart = HexIntToDecInt(FileStartHex);
+
+            unsigned char* FileData = malloc(FileSize);
+
+            fseek(pReadFileOSF3, FileStart, SEEK_SET);
+
+            fread(FileData, FileSize,1,pReadFileOSF3);
+
+            //FileArray[FileIndex].FileSize
+
+            fwrite(FileData, FileSize,1,pWriteFileOSF3);
+        }
+
+        //fwrite(buffer, sizeof(buffer),1,pWriteFileOSF3);
 
         fclose(pWriteFileOSF3);
         fclose(pReadFileOSF3);
