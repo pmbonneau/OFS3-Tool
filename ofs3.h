@@ -1,6 +1,9 @@
 #ifndef OFS3_H_INCLUDED
 #define OFS3_H_INCLUDED
 
+void Extract(unsigned char*);
+void GetFileNameTable(unsigned char*);
+
 typedef struct OFS3
 {
     // Example of OFS3 header
