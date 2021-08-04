@@ -4,6 +4,8 @@
 #include "ofs3.h"
 #include "utilities.h"
 
+char *FileNameTable[1024] = { 0 };
+
 void Extract(unsigned char *FilePath)
 {
     FILE *pReadFileOSF3;
@@ -85,7 +87,20 @@ void Extract(unsigned char *FilePath)
     fread(FileNameTableBuffer, sizeof(FileNameTableBuffer),1,pReadFileOSF3);
 
     //const char* FileNames[8];
-    GetFileNameTable(FileNameTableBuffer);
+    GetFileNameTable(FileNameTableBuffer, 2);
+
+    unsigned char names[32];
+    memcpy(names, FileNameTable[0], sizeof(FileNameTable[0]));
+
+    //char *FileNames[2] = { 0 };
+
+    //char *cursor = FileNameTableBuffer;
+
+    //for (int i = 0; i < 3; i++)
+    //{
+      //  FileNames[i] = cursor;
+       // cursor += strlen(cursor) + 1;
+    //}
 
     //if ((pWriteFileOSF32 = fopen("/home/pmbonneau/Documents/OFS3 Samples/test2.bin","wb")) == NULL)
     //{
@@ -147,42 +162,19 @@ void Extract(unsigned char *FilePath)
 
 // [ch01_000_.tga.phyre]
 // [ch01_000_.buv]
-void GetFileNameTable(unsigned char *FileNameTableBuffer)
+void GetFileNameTable(unsigned char *pFileNameTableBuffer, int FileCount)
 {
-    unsigned char FileNames[8][32]; // Name list size
-    unsigned char buffer[32]; // Max. filename characters count
+    unsigned char FileNameTableBuffer[1024];
 
-    // Initialize
-    for (int x = 0; x > 8; x++)
+    memcpy(FileNameTableBuffer, pFileNameTableBuffer, sizeof(FileNameTableBuffer));
+
+    char *cursor = FileNameTableBuffer;
+
+    for (int i = 0; i < FileCount; i++)
     {
-        for (int y = 0; y < 32; y++)
-        {
-            FileNames[x][y] = NULL;
-        }
+        FileNameTable[i] = cursor;
+        cursor += strlen(cursor) + 1;
     }
 
-    int FileNameIndex = 0;
-    int j = 0;
-    int k = 0;
-    for (int i = 0; i < 1024; i++)
-    {
-        if (FileNameTableBuffer[i] != NULL)
-        {
-            //FileNames[j][k] = FileNameTableBuffer[i];
-            buffer[j] = FileNameTableBuffer[i];
-            j++;
-        }
-        else
-        {
-            //FileNames[FileNameIndex] = buffer;
-            //FileNameIndex++;
-            for (int l = 0; l < j; l++)
-            {
-                FileNames[k][l] = buffer[l];
-            }
-            j = 0;
-            k++;
-            //j++;
-        }
-    }
+    return FileNameTable;
 }

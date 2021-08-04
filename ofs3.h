@@ -2,7 +2,7 @@
 #define OFS3_H_INCLUDED
 
 void Extract(unsigned char*);
-void GetFileNameTable(unsigned char*);
+void GetFileNameTable(unsigned char*, int FileCount);
 
 typedef struct OFS3
 {
