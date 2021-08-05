@@ -2,7 +2,7 @@
 #define OFS3_H_INCLUDED
 
 void Extract(unsigned char*);
-void GetFileNameTable(unsigned char*, int FileCount);
+unsigned char** GetFileNameTable(unsigned char*, int FileCount);
 
 typedef struct OFS3
 {
@@ -24,10 +24,13 @@ typedef struct OFS3
 typedef struct DataFile
 {
     // Need to add 0x10 to the following values to get real value
-    char FileStart[4]; // [30 00 00 00], relative to OFS3 container
+    unsigned char FileStart[4]; // [30 00 00 00], relative to OFS3 container
 
     // FileSize is the start of nametable (name of the first file as well)
-    char FileSize[4]; // [C0 9A 7E 00], no +0x10, be sure to count from the proper file start.
+    unsigned char FileSize[4]; // [C0 9A 7E 00], no +0x10, be sure to count from the proper file start.
+
+    // Filename from the file names table, max length is 128.
+    unsigned char FileName[128];
 
     // Probably not working
     // Can be null if the file has no filename (such as another OFS3 container for example).

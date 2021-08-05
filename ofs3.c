@@ -10,7 +10,6 @@ void Extract(unsigned char *FilePath)
 {
     FILE *pReadFileOSF3;
     FILE *pWriteFileOSF3;
-    //FILE *pWriteFileOSF32;
 
     if ((pReadFileOSF3 = fopen("/home/pmbonneau/Documents/OFS3 Samples/asuna.ofs3","rb")) == NULL)
     {
@@ -84,38 +83,27 @@ void Extract(unsigned char *FilePath)
     // Let's create a file name buffer that is big enough to contain all file names. Soon, that buffer will be dynamically allocated
     // depending of FileCountDec =)
     unsigned char FileNameTableBuffer[1024];
+    //unsigned char** FileNameTable;
     fread(FileNameTableBuffer, sizeof(FileNameTableBuffer),1,pReadFileOSF3);
-
-    //const char* FileNames[8];
-    GetFileNameTable(FileNameTableBuffer, 2);
-
-    unsigned char names[32];
-    memcpy(names, FileNameTable[0], sizeof(FileNameTable[0]));
-
-    //char *FileNames[2] = { 0 };
-
-    //char *cursor = FileNameTableBuffer;
-
-    //for (int i = 0; i < 3; i++)
-    //{
-      //  FileNames[i] = cursor;
-       // cursor += strlen(cursor) + 1;
-    //}
-
-    //if ((pWriteFileOSF32 = fopen("/home/pmbonneau/Documents/OFS3 Samples/test2.bin","wb")) == NULL)
-    //{
-      //  printf("error!\n");
-       // exit(1);
-    //}
-
-    //fwrite(FileNameTableBuffer, 1024,1,pWriteFileOSF32);
-    //fclose(pWriteFileOSF32);
 
     // 2 - We declare the stuff we need for files info like this
     DataFile FileArray[FileCountDec]; // Replace 4 with FileCount, one file is one DataFile object.
+
+    unsigned char** FileNameTable;
+    //const char* FileNames[8];
+    FileNameTable = GetFileNameTable(FileNameTableBuffer, 2);
+
+    // Max. filename size is 128
+    unsigned char FileNames[128];
+    for (int i = 0; i < FileCountDec; i++)
+    {
+        memcpy(FileArray[i].FileName, FileNameTable[i], sizeof(FileNames));
+    }
+
     // We will have to build a loop that will gather the required file info.
 
-    // At this point, pReadFileOFS3 should be at offset 0x14
+    // At this point, pReadFileOFS3 should be at offset 0x14 (right after the OFS3 header + FileCount
+    fseek(pReadFileOSF3, 0x14, SEEK_SET);
     for (int FileIndex = 0; FileIndex < FileCountDec; FileIndex++)
     {
         // Get the file postion (file start)
@@ -128,16 +116,21 @@ void Extract(unsigned char *FilePath)
 
     }
 
-    if ((pWriteFileOSF3 = fopen("/home/pmbonneau/Documents/OFS3 Samples/test.bin","wb")) == NULL)
-    {
-       printf("error!\n");
-       exit(1);
-    }
+    chdir("/home/pmbonneau/Documents/OFS3 Samples/");
 
-    for (int FileIndex = 0; FileIndex < 1; FileIndex++)
+    for (int FileIndex = 0; FileIndex < FileCountDec; FileIndex++)
     {
         int FileSize = CharHexArrayToHexInt(FileArray[FileIndex].FileSize);
         int FileStart = CharHexArrayToHexInt(FileArray[FileIndex].FileStart) + 0x10;
+        unsigned char* FileName[128];
+        memcpy(FileName, FileArray[FileIndex].FileName, sizeof(FileArray[FileIndex].FileName));
+
+        if ((pWriteFileOSF3 = fopen(FileName,"wb")) == NULL)
+        {
+            printf("error!\n");
+            exit(1);
+        }
+
 
         unsigned char* FileData = malloc(FileSize);
 
@@ -162,19 +155,23 @@ void Extract(unsigned char *FilePath)
 
 // [ch01_000_.tga.phyre]
 // [ch01_000_.buv]
-void GetFileNameTable(unsigned char *pFileNameTableBuffer, int FileCount)
+unsigned char** GetFileNameTable(unsigned char *pFileNameTableBuffer, int FileCount)
 {
     unsigned char FileNameTableBuffer[1024];
+    unsigned char** FileNameTable;
 
     memcpy(FileNameTableBuffer, pFileNameTableBuffer, sizeof(FileNameTableBuffer));
 
     char *cursor = FileNameTableBuffer;
 
+    FileNameTable = malloc(FileCount * sizeof(char*));
+
     for (int i = 0; i < FileCount; i++)
     {
-        FileNameTable[i] = cursor;
-        cursor += strlen(cursor) + 1;
+        int FileNameLength = strlen(cursor);
+        FileNameTable[i] = malloc((FileNameLength + 1) * sizeof(char*));
+        strcpy(FileNameTable[i], cursor);
+        cursor += FileNameLength + 1;
     }
-
     return FileNameTable;
 }
