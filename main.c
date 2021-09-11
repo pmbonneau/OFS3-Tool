@@ -22,15 +22,21 @@ int main()
 
     if (OptionChoice == 1)
     {
-        printf("1\n");
+        printf("Selected : 1\n");
         printf("Enter the path of the OSF3 file to extract.\n");
 
-        char FilePath[256];
-        scanf("%s",FilePath);
+        char InputFilePath[256];
+        scanf("%s",InputFilePath);
+        printf("%s", InputFilePath);
 
-        printf("%s", FilePath);
+        printf("\n");
+        printf("Enter the output folder path.\n");
 
-        Extract(FilePath);
+        char OutputFolderPath[256];
+        scanf("%s",OutputFolderPath);
+        printf("%s", OutputFolderPath);
+
+        Extract(InputFilePath, OutputFolderPath);
     }
 
     return 0;

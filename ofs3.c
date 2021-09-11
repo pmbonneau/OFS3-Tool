@@ -6,14 +6,28 @@
 
 char *FileNameTable[1024] = { 0 };
 
-void Extract(unsigned char *FilePath)
+void Extract(unsigned char *pInputFilePath, unsigned char *pOutputFolderPath)
 {
+    unsigned char InputFilePath[256];
+    memcpy(InputFilePath, pInputFilePath, 256);
+
+    unsigned char OutputFolderPath[256];
+    memcpy(OutputFolderPath, pOutputFolderPath, 256);
+
     FILE *pReadFileOSF3;
     FILE *pWriteFileOSF3;
 
-    if ((pReadFileOSF3 = fopen("/home/pmbonneau/Documents/OFS3 Samples/asuna.ofs3","rb")) == NULL)
+    //if ((pReadFileOSF3 = fopen(InputFilePath,"rb")) == NULL)
+   // {
+     //   printf("Error, can't open file.\n");
+    //    printf("Important, verify that path doesn't contains spaces.\n");
+    //    exit(1);
+   // }
+
+    if ((pReadFileOSF3 = fopen("/home/pmbonneau/evcg.ofs3","rb")) == NULL)
     {
-        printf("error!\n");
+        printf("Error, can't open file.\n");
+        printf("Important, verify that path doesn't contains spaces.\n");
         exit(1);
     }
 
@@ -29,7 +43,6 @@ void Extract(unsigned char *FilePath)
         if (i == 0)
         {
             memcpy(ContainerOFS3.FileSignature, buffer, sizeof(buffer));
-            //sscanf(buffer, "%x", &testint);
         }
 
         if (i == 4)
@@ -94,10 +107,55 @@ void Extract(unsigned char *FilePath)
     FileNameTable = GetFileNameTable(FileNameTableBuffer, 2);
 
     // Max. filename size is 128
-    unsigned char FileNames[128];
+    unsigned char FileName[128];
+    unsigned char FileNameAdjusted[128];
+
     for (int i = 0; i < FileCountDec; i++)
     {
-        memcpy(FileArray[i].FileName, FileNameTable[i], sizeof(FileNames));
+        if (FileNameTableBuffer[0] != 0x0)
+        {
+            memcpy(FileArray[i].FileName, FileNameTable[i], sizeof(FileName));
+        }
+        else
+        {
+            int FileNameLength = 0;
+
+            memcpy(FileName, GetFileName(InputFilePath),sizeof(FileName));
+
+            FileNameLength = strlen(FileName);
+
+            int FileExtPosition = 0;
+            for (int j = 0; j < FileNameLength; j++)
+            {
+                if (FileName[j] == '.')
+                {
+                    FileExtPosition = j;
+                }
+            }
+
+            for (int h = 0; h < FileExtPosition; h++)
+            {
+                FileNameAdjusted[h] = FileName[h];
+            }
+
+            FileNameAdjusted[FileExtPosition] = '-';
+
+            // Put a 0 in the filename might cause unexpected behaviors, so we start index from 1.
+            char FileIndex = i + 1;
+            FileNameAdjusted[FileExtPosition + 1] = FileIndex;
+
+            for (int k = FileExtPosition + 1; k < FileNameLength + 1; k++)
+            {
+                FileNameAdjusted[k + 1] = FileName[k - 1];
+                if (k == FileNameLength)
+                {
+                    // Be sure that the string is NULL terminated
+                    FileNameAdjusted[k + 2] = NULL;
+                }
+            }
+
+            memcpy(FileArray[i].FileName, FileNameAdjusted, sizeof(FileNameAdjusted));
+        }
     }
 
     // We will have to build a loop that will gather the required file info.
@@ -116,21 +174,21 @@ void Extract(unsigned char *FilePath)
 
     }
 
-    chdir("/home/pmbonneau/Documents/OFS3 Samples/");
+    //chdir(OutputFolderPath);
+    chdir("/home/pmbonneau/Documents/Test/");
 
     for (int FileIndex = 0; FileIndex < FileCountDec; FileIndex++)
     {
         int FileSize = CharHexArrayToHexInt(FileArray[FileIndex].FileSize);
         int FileStart = CharHexArrayToHexInt(FileArray[FileIndex].FileStart) + 0x10;
-        unsigned char* FileName[128];
         memcpy(FileName, FileArray[FileIndex].FileName, sizeof(FileArray[FileIndex].FileName));
 
         if ((pWriteFileOSF3 = fopen(FileName,"wb")) == NULL)
         {
-            printf("error!\n");
+            printf("Error, can't open file.\n");
+            printf("Important, verify that path doesn't contains spaces.\n");
             exit(1);
         }
-
 
         unsigned char* FileData = malloc(FileSize);
 
