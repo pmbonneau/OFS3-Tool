@@ -17,14 +17,7 @@ void Extract(unsigned char *pInputFilePath, unsigned char *pOutputFolderPath)
     FILE *pReadFileOSF3;
     FILE *pWriteFileOSF3;
 
-    //if ((pReadFileOSF3 = fopen(InputFilePath,"rb")) == NULL)
-   // {
-     //   printf("Error, can't open file.\n");
-    //    printf("Important, verify that path doesn't contains spaces.\n");
-    //    exit(1);
-   // }
-
-    if ((pReadFileOSF3 = fopen("/home/pmbonneau/evcg.ofs3","rb")) == NULL)
+    if ((pReadFileOSF3 = fopen(InputFilePath,"rb")) == NULL)
     {
         printf("Error, can't open file.\n");
         printf("Important, verify that path doesn't contains spaces.\n");
@@ -37,7 +30,6 @@ void Extract(unsigned char *pInputFilePath, unsigned char *pOutputFolderPath)
 
     for (int i = 0; i <=16; i = i + 4)
     {
-        //fseek(pReadFileOSF3, i, SEEK_CUR);
         fread(buffer, sizeof(buffer),1,pReadFileOSF3);
 
         if (i == 0)
@@ -107,58 +99,18 @@ void Extract(unsigned char *pInputFilePath, unsigned char *pOutputFolderPath)
     FileNameTable = GetFileNameTable(FileNameTableBuffer, 2);
 
     // Max. filename size is 128
-    unsigned char FileName[128];
-    unsigned char FileNameAdjusted[128];
 
     for (int i = 0; i < FileCountDec; i++)
     {
         if (FileNameTableBuffer[0] != 0x0)
         {
-            memcpy(FileArray[i].FileName, FileNameTable[i], sizeof(FileName));
+            memcpy(FileArray[i].FileName, FileNameTable[i], sizeof(FileArray[i].FileName));
         }
         else
         {
-            int FileNameLength = 0;
-
-            memcpy(FileName, GetFileName(InputFilePath),sizeof(FileName));
-
-            FileNameLength = strlen(FileName);
-
-            int FileExtPosition = 0;
-            for (int j = 0; j < FileNameLength; j++)
-            {
-                if (FileName[j] == '.')
-                {
-                    FileExtPosition = j;
-                }
-            }
-
-            for (int h = 0; h < FileExtPosition; h++)
-            {
-                FileNameAdjusted[h] = FileName[h];
-            }
-
-            FileNameAdjusted[FileExtPosition] = '-';
-
-            // Put a 0 in the filename might cause unexpected behaviors, so we start index from 1.
-            char FileIndex = i + 1;
-            FileNameAdjusted[FileExtPosition + 1] = FileIndex;
-
-            for (int k = FileExtPosition + 1; k < FileNameLength + 1; k++)
-            {
-                FileNameAdjusted[k + 1] = FileName[k - 1];
-                if (k == FileNameLength)
-                {
-                    // Be sure that the string is NULL terminated
-                    FileNameAdjusted[k + 2] = NULL;
-                }
-            }
-
-            memcpy(FileArray[i].FileName, FileNameAdjusted, sizeof(FileNameAdjusted));
+            memcpy(FileArray[i].FileName, MakeIncrementalFileName(InputFilePath, i), sizeof(FileArray[i].FileName));
         }
     }
-
-    // We will have to build a loop that will gather the required file info.
 
     // At this point, pReadFileOFS3 should be at offset 0x14 (right after the OFS3 header + FileCount
     fseek(pReadFileOSF3, 0x14, SEEK_SET);
@@ -174,8 +126,10 @@ void Extract(unsigned char *pInputFilePath, unsigned char *pOutputFolderPath)
 
     }
 
-    //chdir(OutputFolderPath);
-    chdir("/home/pmbonneau/Documents/Test/");
+    unsigned char FileName[128];
+
+    chdir(OutputFolderPath);
+    //chdir("/home/pmbonneau/Documents/Test/");
 
     for (int FileIndex = 0; FileIndex < FileCountDec; FileIndex++)
     {

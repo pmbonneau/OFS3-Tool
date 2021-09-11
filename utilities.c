@@ -1,4 +1,5 @@
 #include "utilities.h"
+#include <stdio.h>
 
 int CharHexArrayToHexInt(unsigned char *HexArray)
 {
@@ -56,4 +57,50 @@ unsigned char* GetFileName(unsigned char *pFilePath)
     }
 
     return FileName;
+}
+
+unsigned char* MakeIncrementalFileName(unsigned char *InputFileName, int Increment)
+{
+    unsigned char FileName[128];
+
+    // We must malloc() the returned variable
+    unsigned char *FileNameAdjusted;
+    FileNameAdjusted = malloc(128);
+
+    memcpy(FileName, GetFileName(InputFileName),sizeof(FileName));
+
+    int FileNameLength = 0;
+    FileNameLength = strlen(FileName);
+
+    int FileExtPosition = 0;
+    for (int j = 0; j < FileNameLength; j++)
+    {
+        if (FileName[j] == '.')
+        {
+            FileExtPosition = j;
+        }
+    }
+
+    for (int h = 0; h < FileExtPosition; h++)
+    {
+        FileNameAdjusted[h] = FileName[h];
+    }
+
+    FileNameAdjusted[FileExtPosition] = '-';
+
+    // Put a 0 in the filename might cause unexpected behaviors, so we start index from 1.
+    // 49 is the ASCII number 1, otherwise we get weird characters in file names.
+    char FileIndex = Increment + 49;
+    FileNameAdjusted[FileExtPosition + 1] = FileIndex;
+
+    for (int k = FileExtPosition + 1; k < FileNameLength + 1; k++)
+    {
+        FileNameAdjusted[k + 1] = FileName[k - 1];
+        if (k == FileNameLength)
+        {
+            // Be sure that the string is NULL terminated
+            FileNameAdjusted[k + 2] = NULL;
+        }
+    }
+    return FileNameAdjusted;
 }
