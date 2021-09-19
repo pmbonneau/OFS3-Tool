@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include "ofs3.h"
 #include "utilities.h"
 
 char *FileNameTable[1024] = { 0 };
 
-void Extract(unsigned char *pInputFilePath, unsigned char *pOutputFolderPath)
+void Extract(unsigned char *pInputFilePath, unsigned char *pOutputFolderPath, bool pFileListOutputEnabled)
 {
     unsigned char InputFilePath[256];
     memcpy(InputFilePath, pInputFilePath, 256);
@@ -16,6 +17,9 @@ void Extract(unsigned char *pInputFilePath, unsigned char *pOutputFolderPath)
 
     FILE *pReadFileOSF3;
     FILE *pWriteFileOSF3;
+
+    //Only used if pFileListOutputEnabled is true
+    FILE *pWriteFileList;
 
     if ((pReadFileOSF3 = fopen(InputFilePath,"rb")) == NULL)
     {
@@ -102,6 +106,7 @@ void Extract(unsigned char *pInputFilePath, unsigned char *pOutputFolderPath)
 
     for (int i = 0; i < FileCountDec; i++)
     {
+        // There is a bug with this stuff, check file boundaries
         if (FileNameTableBuffer[0] != 0x0)
         {
             memcpy(FileArray[i].FileName, FileNameTable[i], sizeof(FileArray[i].FileName));
@@ -151,6 +156,28 @@ void Extract(unsigned char *pInputFilePath, unsigned char *pOutputFolderPath)
         fread(FileData, FileSize,1,pReadFileOSF3);
 
         fwrite(FileData, FileSize,1,pWriteFileOSF3);
+
+        if (pFileListOutputEnabled == true)
+        {
+            if ((pWriteFileList = fopen("FileList.txt","a")) == NULL)
+            {
+                printf("Error, can't open file.\n");
+                exit(1);
+            }
+
+            int ReturnCode = fputs(FileName, pWriteFileList);
+            ReturnCode = fputs("\n", pWriteFileList);
+
+            if (ReturnCode == EOF)
+            {
+                printf("Error, can't write to file.\n");
+            }
+        }
+    }
+
+    if (pFileListOutputEnabled == true)
+    {
+        fclose(pWriteFileList);
     }
 
     fclose(pWriteFileOSF3);

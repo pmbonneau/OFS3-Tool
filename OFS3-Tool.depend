@@ -3,14 +3,16 @@
 	<stdio.h>
 	<stdlib.h>
 
-1628310349 source:/home/pmbonneau/Documents/OFS3-Tool/main.c
+1631943154 source:/home/pmbonneau/Documents/OFS3-Tool/main.c
 	<stdio.h>
+	<dirent.h>
 	<stdlib.h>
 	<string.h>
+	<stdbool.h>
 	"ofs3.h"
 	"utilities.h"
 
-1628402241 /home/pmbonneau/Documents/OFS3-Tool/ofs3.h
+1631510260 /home/pmbonneau/Documents/OFS3-Tool/ofs3.h
 
 1631338119 source:/home/pmbonneau/Documents/OFS3-Tool/utilities.c
 	"utilities.h"
@@ -18,10 +20,11 @@
 
 1631336601 /home/pmbonneau/Documents/OFS3-Tool/utilities.h
 
-1631338840 source:/home/pmbonneau/Documents/OFS3-Tool/ofs3.c
+1631941729 source:/home/pmbonneau/Documents/OFS3-Tool/ofs3.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
+	<stdbool.h>
 	"ofs3.h"
 	"utilities.h"
 
