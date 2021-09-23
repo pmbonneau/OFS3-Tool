@@ -15,6 +15,10 @@ void Extract(unsigned char *pInputFilePath, unsigned char *pOutputFolderPath, bo
     unsigned char OutputFolderPath[256];
     memcpy(OutputFolderPath, pOutputFolderPath, 256);
 
+    printf("Working on ");
+    printf("%s", pInputFilePath);
+    printf("\n");
+
     FILE *pReadFileOSF3;
     FILE *pWriteFileOSF3;
 
@@ -28,9 +32,19 @@ void Extract(unsigned char *pInputFilePath, unsigned char *pOutputFolderPath, bo
         exit(1);
     }
 
+    int WholeFileSize = 0;
+    // Seek until the end of the file to get the size
+    fseek(pReadFileOSF3, 0L, SEEK_END);
+    WholeFileSize = ftell(pReadFileOSF3);
+
+    // Set the file stream back to beginning
+    rewind(pReadFileOSF3);
+
     OFS3 ContainerOFS3;
 
     unsigned char buffer[4];
+
+    printf("Parsing file header...\n");
 
     for (int i = 0; i <=16; i = i + 4)
     {
@@ -61,12 +75,30 @@ void Extract(unsigned char *pInputFilePath, unsigned char *pOutputFolderPath, bo
             memcpy(ContainerOFS3.FileCount, buffer, sizeof(buffer));
         }
 
-        for (int j = 0; j < sizeof(buffer); j++)
-        {
-            printf("%02x\n", buffer[j]);
-        }
+        //for (int j = 0; j < sizeof(buffer); j++)
+        //{
+        //    printf("%02x\n", buffer[j]);
+        //}
     }
 
+    printf("Checking file...\n");
+
+    // Check if the file is an OFS3 container
+    int FileHeader = CharHexArrayToHexInt(ContainerOFS3.FileSignature);
+    if (FileHeader != 0x3353464f)
+    {
+        printf("OFS3 file header invalid, probably the file isn't an OFS3 container.\n");
+        printf("\n");
+        return;
+    }
+
+    // Check if an OFS3 container is too tiny or null size
+    if (WholeFileSize <= 0x40)
+    {
+        printf("OFS3 container size is smaller than 0x40, which is abnormal.\n");
+        printf("\n");
+        return;
+    }
 
     // Extraction algorithm thinkering
     // Example of OFS3 header
@@ -86,6 +118,8 @@ void Extract(unsigned char *pInputFilePath, unsigned char *pOutputFolderPath, bo
     int FileCountHex = CharHexArrayToHexInt(ContainerOFS3.FileCount);
     int FileCountDec = HexIntToDecInt(FileCountHex);
 
+    printf("Reading filenames table...\n");
+
     // For file names table
     fseek(pReadFileOSF3, ContainerSize, SEEK_SET);
 
@@ -94,6 +128,8 @@ void Extract(unsigned char *pInputFilePath, unsigned char *pOutputFolderPath, bo
     unsigned char FileNameTableBuffer[1024];
     //unsigned char** FileNameTable;
     fread(FileNameTableBuffer, sizeof(FileNameTableBuffer),1,pReadFileOSF3);
+
+    printf("Building data file array...\n");
 
     // 2 - We declare the stuff we need for files info like this
     DataFile FileArray[FileCountDec]; // Replace 4 with FileCount, one file is one DataFile object.
@@ -104,10 +140,13 @@ void Extract(unsigned char *pInputFilePath, unsigned char *pOutputFolderPath, bo
 
     // Max. filename size is 128
 
+    printf("Fetching file names...\n");
+
     for (int i = 0; i < FileCountDec; i++)
     {
         // There is a bug with this stuff, check file boundaries
-        if (FileNameTableBuffer[0] != 0x0)
+        //if (FileNameTableBuffer[0] != 0x0)
+        if (WholeFileSize != ContainerSize)
         {
             memcpy(FileArray[i].FileName, FileNameTable[i], sizeof(FileArray[i].FileName));
         }
@@ -116,6 +155,8 @@ void Extract(unsigned char *pInputFilePath, unsigned char *pOutputFolderPath, bo
             memcpy(FileArray[i].FileName, MakeIncrementalFileName(InputFilePath, i), sizeof(FileArray[i].FileName));
         }
     }
+
+    printf("Parsing OFS3 data...\n");
 
     // At this point, pReadFileOFS3 should be at offset 0x14 (right after the OFS3 header + FileCount
     fseek(pReadFileOSF3, 0x14, SEEK_SET);
@@ -134,8 +175,8 @@ void Extract(unsigned char *pInputFilePath, unsigned char *pOutputFolderPath, bo
     unsigned char FileName[128];
 
     chdir(OutputFolderPath);
-    //chdir("/home/pmbonneau/Documents/Test/");
 
+    printf("Extracting data...\n");
     for (int FileIndex = 0; FileIndex < FileCountDec; FileIndex++)
     {
         int FileSize = CharHexArrayToHexInt(FileArray[FileIndex].FileSize);
@@ -154,6 +195,10 @@ void Extract(unsigned char *pInputFilePath, unsigned char *pOutputFolderPath, bo
         fseek(pReadFileOSF3, FileStart, SEEK_SET);
 
         fread(FileData, FileSize,1,pReadFileOSF3);
+
+        printf("Writing ");
+        printf("%s", FileName);
+        printf("...\n");
 
         fwrite(FileData, FileSize,1,pWriteFileOSF3);
 
@@ -182,6 +227,10 @@ void Extract(unsigned char *pInputFilePath, unsigned char *pOutputFolderPath, bo
 
     fclose(pWriteFileOSF3);
     fclose(pReadFileOSF3);
+
+    printf("Success!");
+    printf("\n");
+    printf("\n");
 
     return;
 }

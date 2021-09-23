@@ -51,10 +51,13 @@ unsigned char* GetFileName(unsigned char *pFilePath)
 
     FileName = malloc(128);
 
-    for (int i = 0; i <= sizeof(TempFileName); i++)
-    {
-        FileName[i] = TempFileName[i+1];
-    }
+    //for (int i = 0; i <= sizeof(TempFileName); i++)
+    //{
+     //   FileName[i] = TempFileName[i+1];
+    //}
+
+    // Pointer trick to remove leading slash
+    FileName = TempFileName + 1;
 
     return FileName;
 }

@@ -20,8 +20,8 @@ int main()
     printf("\n");
     printf("Options list :\n");
     printf("1. Extract an OFS3 file\n");
-    printf("2. Extract an OFS3 file recursively\n");
-    printf("3. Extract all OFS3 files from a folder\n");
+    printf("2. Extract all OFS3 files from a folder\n");
+    printf("3. Extract an OFS3 file recursively\n");
     printf("4. Exit\n");
     printf("\n");
 
@@ -38,14 +38,14 @@ int main()
 
         char InputFilePath[256];
         scanf("%s",InputFilePath);
-        printf("%s", InputFilePath);
+        //printf("%s", InputFilePath);
 
         printf("\n");
         printf("Enter the output folder path.\n");
 
         char OutputFolderPath[256];
         scanf("%s",OutputFolderPath);
-        printf("%s", OutputFolderPath);
+        printf("\n");
 
         Extract(InputFilePath, OutputFolderPath, false);
     }
@@ -57,14 +57,13 @@ int main()
 
         char InputFolderPath[256];
         scanf("%s",InputFolderPath);
-        printf("%s", InputFolderPath);
 
         printf("\n");
         printf("Enter the output folder path.\n");
 
         char OutputFolderPath[256];
         scanf("%s",OutputFolderPath);
-        printf("%s", OutputFolderPath);
+        printf("\n");
 
         DIR *SelectedDirectory;
         struct dirent *Directory;
@@ -77,7 +76,6 @@ int main()
             while ((Directory = readdir(SelectedDirectory)) != NULL)
             {
                 memcpy(CurrentFileName, Directory->d_name, 256);
-                //if (CurrentFileName[0] != '.')
                 if (Directory->d_type==DT_REG)
                 {
                     // Resets the CurrentFilePath array.
@@ -87,13 +85,21 @@ int main()
                     strcat(CurrentFilePath, InputFolderPath);
                     strcat(CurrentFilePath, "/");
                     strcat(CurrentFilePath,Directory->d_name);
-                    printf("%s\n", CurrentFilePath);
                     Extract(CurrentFilePath, OutputFolderPath, true);
                 }
             }
             closedir(SelectedDirectory);
         }
     }
+
+    if (OptionChoice == 3)
+    {
+        printf("Not implemented.\n");
+    }
+
+    printf("Press any key to exit program\n");
+    getchar();
+    getchar();
 
     return 0;
 }
